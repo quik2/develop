@@ -47,9 +47,9 @@ def resize_for_api(image_bytes: bytes) -> bytes:
 
 # --- Step 1: Photographer (looks at the photo, thinks freely) ---
 
-PHOTOGRAPHER_PROMPT = """You're a professional photographer looking at this photo someone just took on their phone.
+PHOTOGRAPHER_PROMPT = """You're a professional photographer retouching this photo. The photo stays the same — same scene, same objects, same composition. You're just making it look like YOU shot it instead of a phone.
 
-What would you do to make this photo look amazing? Think about what this specific photo needs — the lighting, the colors, the background, the composition, everything. Be specific about what you'd change and why. Some photos need a lot of work, some just need a little polish. Match your edits to what the photo is actually asking for."""
+How would you retouch the lighting, colors, depth, and atmosphere? Be specific about what adjustments you'd make to this particular photo."""
 
 
 async def step1_photographer(client: AsyncOpenAI, image_b64: str) -> str:
@@ -87,9 +87,9 @@ CRAFTER_PROMPT = """A professional photographer looked at a photo and described 
 {photographer_notes}
 ---
 
-Turn this into a short, natural image editing prompt (2-4 sentences). Write it like you're telling an editor what to do. Keep it creative and specific to this photo — don't be generic.
+Turn this into a short, natural image editing prompt (2-4 sentences). Write it like you're giving retouching instructions — the photo should still look like the same photo, just professionally edited.
 
-If the photographer mentioned anything about people in the photo, add one simple line at the end: "Keep any people looking exactly as they are."
+End the prompt with: "Keep everything in the scene as it is — same objects, same setting, same people. Only change the lighting, colors, and atmosphere."
 
 Just write the prompt, nothing else."""
 
@@ -115,10 +115,10 @@ async def step2_crafter(client: AsyncOpenAI, photographer_notes: str) -> str:
 # --- Step 3: Editor (GPT Image 1.5 applies the prompt) ---
 
 FALLBACK_PROMPT = (
-    "Make this photo look like it was taken by a professional photographer. "
+    "Retouch this photo to look like it was taken by a professional photographer. "
     "Improve the lighting, colors, and atmosphere to match what the scene naturally "
-    "calls for. Clean up any distracting elements in the background. "
-    "Keep any people looking exactly as they are."
+    "calls for. Keep everything in the scene as it is — same objects, same setting, "
+    "same people. Only change the lighting, colors, and atmosphere."
 )
 
 

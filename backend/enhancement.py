@@ -63,7 +63,9 @@ CRAFTER_PROMPT = """A photographer described how a phone photo could look if a s
 
 Turn this into a short image editing prompt (2-4 sentences). The edit should make the photo look like a skilled photographer took it — natural, real, and beautiful. Not filtered, not CGI, not overly dramatic. Just what the photo should have looked like.
 
-End with: "The result should look like a real photograph. Keep the same scene, objects, and people exactly as they are." """
+Never suggest cropping, reframing, or changing the composition. The framing stays exactly as it is.
+
+End with: "The result should look like a real photograph. Keep the same scene, objects, people, and framing exactly as they are." """
 
 
 # --- Fallback ---
@@ -165,6 +167,16 @@ async def enhance_image(
     if not prompt:
         prompt = FALLBACK_PROMPT
 
+    # Determine output size matching input aspect ratio
+    img = Image.open(io.BytesIO(resized))
+    w, h = img.size
+    if h > w:
+        size = "1024x1536"   # portrait
+    elif w > h:
+        size = "1536x1024"   # landscape
+    else:
+        size = "1024x1024"   # square
+
     # Step 3: Edit with GPT Image 1.5
     image_file = io.BytesIO(resized)
     image_file.name = "photo.jpg"
@@ -175,7 +187,7 @@ async def enhance_image(
         prompt=prompt,
         input_fidelity="high",
         quality="medium",
-        size="auto",
+        size=size,
     )
 
     image_b64 = result.data[0].b64_json

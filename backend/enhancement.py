@@ -1,11 +1,10 @@
 # enhancement.py — Three-step AI enhancement pipeline.
 #
-# Step 1: Photographer — GPT-4o mini looks at the photo and says what it needs
-# Step 2: Prompt Crafter — GPT-4o mini turns that into a clean editing prompt
-# Step 3: Editor — GPT Image 1.5 applies it
-#
-# Philosophy: no rules, no constraints, no "DO NOT" lists. Let the AI think
-# freely and creatively. The only fixed thing: people stay looking the same.
+# The goal: close the gap between "what my phone captured" and "what a skilled
+# photographer would have produced from the same moment." The result should look
+# like the photo was taken by someone who knows what they're doing — not like
+# it was run through a filter, not like CGI, not like a render. Just a better
+# version of the same real photo.
 
 import base64
 import io
@@ -45,17 +44,43 @@ def resize_for_api(image_bytes: bytes) -> bytes:
     return result
 
 
-# --- Step 1: Photographer (looks at the photo, thinks freely) ---
+# --- Step 1: Photographer (looks at the photo, thinks about what it should look like) ---
 
-PHOTOGRAPHER_PROMPT = """You're editing this photo in post-production. The photo was already taken — you can't add new lights or change anything physical. You're working with the existing light in the scene.
+PHOTOGRAPHER_PROMPT = """Someone who doesn't know anything about photography just took this photo on their phone. It captures a real moment they care about.
 
-Your tools: color grading, exposure curves, selective color adjustments, depth-of-field effects, atmosphere and haze, shadow/highlight recovery. Think of what a great colorist does to a movie — they don't add lights, they shape what's already there into something beautiful.
+If a skilled photographer had been standing in the exact same spot at the exact same time, what would their version of this photo look like? Same scene, same moment, same people — but taken by someone who understands light, color, and composition.
 
-What color grade and mood would you give this specific photo? How would you shape the existing light to make it feel more intentional and professional? Be creative but realistic — the result should look like a real photograph, not CGI."""
+Describe how the skilled photographer's version would differ. Think about what the camera SHOULD have captured — the way the light actually looked to the human eye, the colors as they actually felt, the depth and atmosphere that were actually there but the phone camera missed."""
 
+
+# --- Step 2: Prompt Crafter ---
+
+CRAFTER_PROMPT = """A photographer described how a phone photo could look if a skilled photographer had taken it instead. Here's what they said:
+
+---
+{photographer_notes}
+---
+
+Turn this into a short image editing prompt (2-4 sentences). The edit should make the photo look like a skilled photographer took it — natural, real, and beautiful. Not filtered, not CGI, not overly dramatic. Just what the photo should have looked like.
+
+End with: "The result should look like a real photograph. Keep the same scene, objects, and people exactly as they are." """
+
+
+# --- Fallback ---
+
+FALLBACK_PROMPT = (
+    "Make this photo look like a skilled photographer took it instead of a phone. "
+    "The light, colors, and depth should look natural and intentional — like what "
+    "the human eye actually saw, but the phone camera couldn't capture. "
+    "The result should look like a real photograph. Keep the same scene, objects, "
+    "and people exactly as they are."
+)
+
+
+# --- Pipeline functions ---
 
 async def step1_photographer(client: AsyncOpenAI, image_b64: str) -> str:
-    """Photographer looks at the photo and says what it needs."""
+    """Photographer looks at the photo and describes what a better version looks like."""
     response = await client.chat.completions.create(
         model="gpt-4o-mini",
         max_tokens=200,
@@ -81,21 +106,6 @@ async def step1_photographer(client: AsyncOpenAI, image_b64: str) -> str:
     return result
 
 
-# --- Step 2: Prompt Crafter (turns the photographer's ideas into an editing prompt) ---
-
-CRAFTER_PROMPT = """A professional photographer looked at a photo and described how they'd edit it. Here's what they said:
-
----
-{photographer_notes}
----
-
-Turn this into a short image editing prompt (2-4 sentences). Focus on the color grading and mood — how the existing light should be shaped. Skip anything that sounds like adding new light sources or physical changes. The result should look like a real photograph, not CGI or a render.
-
-End with: "Keep everything in the scene as it is. The result should look like a real, natural photograph."
-
-Just write the prompt, nothing else."""
-
-
 async def step2_crafter(client: AsyncOpenAI, photographer_notes: str) -> str:
     """Turn the photographer's notes into a clean editing prompt."""
     response = await client.chat.completions.create(
@@ -114,15 +124,7 @@ async def step2_crafter(client: AsyncOpenAI, photographer_notes: str) -> str:
     return result
 
 
-# --- Step 3: Editor (GPT Image 1.5 applies the prompt) ---
-
-FALLBACK_PROMPT = (
-    "Give this photo a professional color grade that fits the mood of the scene. "
-    "Shape the existing light to feel more intentional — recover shadows, control "
-    "highlights, add depth. Keep everything in the scene as it is. The result "
-    "should look like a real, natural photograph."
-)
-
+# --- Main enhancement function ---
 
 async def enhance_image(
     client: AsyncOpenAI,
@@ -132,9 +134,9 @@ async def enhance_image(
 ) -> tuple[str, str, str, str]:
     """
     Three-step enhancement:
-    1. Photographer looks at the photo (~$0.0003)
-    2. Crafter writes a clean prompt (~$0.0001)
-    3. Editor enhances the image (~$0.05-0.10)
+    1. Photographer describes what a skilled version would look like (~$0.0003)
+    2. Crafter writes a clean editing prompt (~$0.0001)
+    3. GPT Image 1.5 applies the edit (~$0.05-0.10)
 
     Returns (base64_image, format, photographer_notes, final_prompt).
     """

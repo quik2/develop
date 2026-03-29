@@ -47,9 +47,9 @@ def resize_for_api(image_bytes: bytes) -> bytes:
 
 # --- Step 1: Photographer (looks at the photo, thinks freely) ---
 
-PHOTOGRAPHER_PROMPT = """You're a professional photographer retouching this photo. The photo stays the same — same scene, same objects, same composition. You're just making it look like YOU shot it instead of a phone.
+PHOTOGRAPHER_PROMPT = """You're a professional photographer who just walked onto this exact scene. You can't move anything — the objects, people, and composition stay exactly as they are. But you have unlimited lighting equipment, any lens you want, and the best color grading software in the world.
 
-How would you retouch the lighting, colors, depth, and atmosphere? Be specific about what adjustments you'd make to this particular photo."""
+How would you light this scene? What mood would you create? What color grade would you apply? Think big — you're not just bumping up the contrast, you're making this look like it belongs in a magazine. Be specific and creative about what you'd do with the lighting and atmosphere for THIS particular scene."""
 
 
 async def step1_photographer(client: AsyncOpenAI, image_b64: str) -> str:
@@ -87,9 +87,9 @@ CRAFTER_PROMPT = """A professional photographer looked at a photo and described 
 {photographer_notes}
 ---
 
-Turn this into a short, natural image editing prompt (2-4 sentences). Write it like you're giving retouching instructions — the photo should still look like the same photo, just professionally edited.
+Turn this into a short, vivid image editing prompt (2-4 sentences). Focus on the creative lighting and color grading ideas — skip any basic adjustments like "increase contrast" or "adjust white balance" that any phone can do. This is AI — it can actually change how the light falls on a scene.
 
-End the prompt with: "Keep everything in the scene as it is — same objects, same setting, same people. Only change the lighting, colors, and atmosphere."
+End with: "Keep everything in the scene as it is — same objects, same setting, same people. Only change the lighting, colors, and atmosphere."
 
 Just write the prompt, nothing else."""
 
@@ -115,10 +115,10 @@ async def step2_crafter(client: AsyncOpenAI, photographer_notes: str) -> str:
 # --- Step 3: Editor (GPT Image 1.5 applies the prompt) ---
 
 FALLBACK_PROMPT = (
-    "Retouch this photo to look like it was taken by a professional photographer. "
-    "Improve the lighting, colors, and atmosphere to match what the scene naturally "
-    "calls for. Keep everything in the scene as it is — same objects, same setting, "
-    "same people. Only change the lighting, colors, and atmosphere."
+    "Make this photo look like it was shot by a professional photographer with "
+    "professional lighting. Add depth, atmosphere, and a color grade that fits "
+    "the mood of the scene. Keep everything in the scene as it is — same objects, "
+    "same setting, same people. Only change the lighting, colors, and atmosphere."
 )
 
 

@@ -50,7 +50,12 @@ PHOTOGRAPHER_PROMPT = """Someone who doesn't know anything about photography jus
 
 If a skilled photographer had been standing in the exact same spot at the exact same time, what would their version of this photo look like? Same scene, same moment, same people — but taken by someone who understands light, color, and composition.
 
-Describe how the skilled photographer's version would differ. Think about what the camera SHOULD have captured — the way the light actually looked to the human eye, the colors as they actually felt, the depth and atmosphere that were actually there but the phone camera missed."""
+Think about:
+- What the light and colors SHOULD have looked like — what the human eye actually saw but the phone flattened
+- Small distractions a pro would clean up in post — wires, trash, stray objects at the edges, signs, clutter that pulls your eye away from the subject. A good photographer always cleans these up.
+- The depth and atmosphere the phone missed
+
+Describe what the better version of this photo looks like."""
 
 
 # --- Step 2: Prompt Crafter ---
@@ -63,9 +68,9 @@ CRAFTER_PROMPT = """A photographer described how a phone photo could look if a s
 
 Turn this into a short image editing prompt (2-4 sentences). The edit should make the photo look like a skilled photographer took it — natural, real, and beautiful. Not filtered, not CGI, not overly dramatic. Just what the photo should have looked like.
 
-Never suggest cropping, reframing, or changing the composition. The framing stays exactly as it is.
+Never suggest cropping or reframing. The framing stays exactly as it is. You CAN suggest removing small distractions (wires, trash, clutter, signs) that a pro would clean up — but never remove anything that's part of the actual scene or story.
 
-End with: "The result should look like a real photograph. Keep the same scene, objects, people, and framing exactly as they are." """
+End with: "The result should look like a real photograph. Keep the same scene, people, and framing exactly as they are." """
 
 
 # --- Fallback ---

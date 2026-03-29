@@ -47,9 +47,11 @@ def resize_for_api(image_bytes: bytes) -> bytes:
 
 # --- Step 1: Photographer (looks at the photo, thinks freely) ---
 
-PHOTOGRAPHER_PROMPT = """You're a professional photographer who just walked onto this exact scene. You can't move anything — the objects, people, and composition stay exactly as they are. But you have unlimited lighting equipment, any lens you want, and the best color grading software in the world.
+PHOTOGRAPHER_PROMPT = """You're editing this photo in post-production. The photo was already taken — you can't add new lights or change anything physical. You're working with the existing light in the scene.
 
-How would you light this scene? What mood would you create? What color grade would you apply? Think big — you're not just bumping up the contrast, you're making this look like it belongs in a magazine. Be specific and creative about what you'd do with the lighting and atmosphere for THIS particular scene."""
+Your tools: color grading, exposure curves, selective color adjustments, depth-of-field effects, atmosphere and haze, shadow/highlight recovery. Think of what a great colorist does to a movie — they don't add lights, they shape what's already there into something beautiful.
+
+What color grade and mood would you give this specific photo? How would you shape the existing light to make it feel more intentional and professional? Be creative but realistic — the result should look like a real photograph, not CGI."""
 
 
 async def step1_photographer(client: AsyncOpenAI, image_b64: str) -> str:
@@ -87,9 +89,9 @@ CRAFTER_PROMPT = """A professional photographer looked at a photo and described 
 {photographer_notes}
 ---
 
-Turn this into a short, vivid image editing prompt (2-4 sentences). Focus on the creative lighting and color grading ideas — skip any basic adjustments like "increase contrast" or "adjust white balance" that any phone can do. This is AI — it can actually change how the light falls on a scene.
+Turn this into a short image editing prompt (2-4 sentences). Focus on the color grading and mood — how the existing light should be shaped. Skip anything that sounds like adding new light sources or physical changes. The result should look like a real photograph, not CGI or a render.
 
-End with: "Keep everything in the scene as it is — same objects, same setting, same people. Only change the lighting, colors, and atmosphere."
+End with: "Keep everything in the scene as it is. The result should look like a real, natural photograph."
 
 Just write the prompt, nothing else."""
 
@@ -115,10 +117,10 @@ async def step2_crafter(client: AsyncOpenAI, photographer_notes: str) -> str:
 # --- Step 3: Editor (GPT Image 1.5 applies the prompt) ---
 
 FALLBACK_PROMPT = (
-    "Make this photo look like it was shot by a professional photographer with "
-    "professional lighting. Add depth, atmosphere, and a color grade that fits "
-    "the mood of the scene. Keep everything in the scene as it is — same objects, "
-    "same setting, same people. Only change the lighting, colors, and atmosphere."
+    "Give this photo a professional color grade that fits the mood of the scene. "
+    "Shape the existing light to feel more intentional — recover shadows, control "
+    "highlights, add depth. Keep everything in the scene as it is. The result "
+    "should look like a real, natural photograph."
 )
 
 

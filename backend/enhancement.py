@@ -46,16 +46,7 @@ def resize_for_api(image_bytes: bytes) -> bytes:
 
 # --- Step 1: Photographer (looks at the photo, thinks about what it should look like) ---
 
-PHOTOGRAPHER_PROMPT = """Someone who doesn't know anything about photography just took this photo on their phone. It captures a real moment they care about.
-
-If a skilled photographer had been standing in the exact same spot at the exact same time, what would their version of this photo look like? Same scene, same moment, same people — but taken by someone who understands light, color, and composition.
-
-Think about:
-- What the light and colors SHOULD have looked like — what the human eye actually saw but the phone flattened
-- Small distractions a pro would clean up in post — wires, trash, stray objects at the edges, signs, clutter that pulls your eye away from the subject. A good photographer always cleans these up.
-- The depth and atmosphere the phone missed
-
-Describe what the better version of this photo looks like."""
+PHOTOGRAPHER_PROMPT = """Someone who doesn't know photography took this on their phone. If a skilled photographer had taken this same photo and edited it, what would the final version look like? Describe that version."""
 
 
 # --- Step 2: Prompt Crafter ---
@@ -66,21 +57,16 @@ CRAFTER_PROMPT = """A photographer described how a phone photo could look if a s
 {photographer_notes}
 ---
 
-Turn this into a short image editing prompt (2-4 sentences). The edit should make the photo look like a skilled photographer took it — natural, real, and beautiful. Not filtered, not CGI, not overly dramatic. Just what the photo should have looked like.
+Turn this into a short image editing prompt (2-4 sentences) that would make this photo look like a skilled photographer took it and edited it. The result should look real and natural.
 
-Never suggest cropping or reframing. The framing stays exactly as it is. You CAN suggest removing small distractions (wires, trash, clutter, signs) that a pro would clean up — but never remove anything that's part of the actual scene or story.
-
-End with: "The result should look like a real photograph. Keep the same scene, people, and framing exactly as they are." """
+End with: "Keep the same scene, people, and framing." """
 
 
 # --- Fallback ---
 
 FALLBACK_PROMPT = (
-    "Make this photo look like a skilled photographer took it instead of a phone. "
-    "The light, colors, and depth should look natural and intentional — like what "
-    "the human eye actually saw, but the phone camera couldn't capture. "
-    "The result should look like a real photograph. Keep the same scene, objects, "
-    "and people exactly as they are."
+    "Make this photo look like a skilled photographer took it and edited it. "
+    "Keep the same scene, people, and framing."
 )
 
 

@@ -19,6 +19,7 @@ from database import (
     fail_job,
     get_db,
     get_job,
+    get_recent_logs,
     get_usage,
     increment_usage,
     init_db,
@@ -164,10 +165,10 @@ async def _process_enhancement(job_id: str, image_bytes: bytes, scene_type: str,
     """Background task: call OpenAI and store the result."""
     db = await get_db()
     try:
-        image_b64, image_format = await enhance_image(
+        image_b64, image_format, photographer_notes, final_prompt = await enhance_image(
             openai_client, image_bytes, scene_type, style
         )
-        await complete_job(db, job_id, image_b64, image_format)
+        await complete_job(db, job_id, image_b64, image_format, photographer_notes, final_prompt)
         logger.info("Job %s completed", job_id)
 
     except Exception as e:
@@ -281,6 +282,20 @@ async def revenuecat_webhook(payload: dict):
 
         return {"status": "ok"}
 
+    finally:
+        await db.close()
+
+
+# ─── GET /api/logs ───
+
+
+@app.get("/api/logs")
+async def get_logs(limit: int = 20):
+    """Get recent enhancement jobs with their prompts for debugging."""
+    db = await get_db()
+    try:
+        logs = await get_recent_logs(db, limit)
+        return {"logs": logs}
     finally:
         await db.close()
 

@@ -127,12 +127,14 @@ async def enhance_image(
     image_bytes: bytes,
     scene_type: str,
     style: str = "natural",
-) -> tuple[str, str]:
+) -> tuple[str, str, str, str]:
     """
     Three-step enhancement:
     1. Photographer looks at the photo (~$0.0003)
     2. Crafter writes a clean prompt (~$0.0001)
     3. Editor enhances the image (~$0.05-0.10)
+
+    Returns (base64_image, format, photographer_notes, final_prompt).
     """
     # Resize input
     resized = resize_for_api(image_bytes)
@@ -141,6 +143,7 @@ async def enhance_image(
                 scene_type, len(image_bytes), len(resized))
 
     # Step 1 + 2: Photographer → Crafter
+    notes = None
     prompt = None
     try:
         notes = await step1_photographer(client, image_b64)
@@ -174,4 +177,4 @@ async def enhance_image(
     image_b64 = result.data[0].b64_json
     logger.info("Enhancement complete: result size=%d chars", len(image_b64))
 
-    return image_b64, "png"
+    return image_b64, "png", notes, prompt

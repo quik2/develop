@@ -31,6 +31,8 @@ async def init_db():
                 style TEXT DEFAULT 'natural',
                 image_base64 TEXT,
                 image_format TEXT DEFAULT 'png',
+                photographer_notes TEXT,
+                final_prompt TEXT,
                 error TEXT,
                 created_at TEXT NOT NULL DEFAULT (datetime('now')),
                 completed_at TEXT
@@ -103,12 +105,15 @@ async def complete_job(
     job_id: str,
     image_base64: str,
     image_format: str = "png",
+    photographer_notes: str = None,
+    final_prompt: str = None,
 ):
-    """Mark a job as completed with the result image."""
+    """Mark a job as completed with the result image and prompts used."""
     await db.execute(
         """UPDATE jobs SET status = 'completed', image_base64 = ?, image_format = ?,
+           photographer_notes = ?, final_prompt = ?,
            completed_at = datetime('now') WHERE job_id = ?""",
-        (image_base64, image_format, job_id),
+        (image_base64, image_format, photographer_notes, final_prompt, job_id),
     )
     await db.commit()
 
@@ -147,6 +152,30 @@ async def update_user_tier(db: aiosqlite.Connection, device_id: str, tier: str):
         "UPDATE users SET tier = ? WHERE device_id = ?", (tier, device_id)
     )
     await db.commit()
+
+
+async def get_recent_logs(db: aiosqlite.Connection, limit: int = 20) -> list:
+    """Get recent jobs with their prompts for debugging."""
+    rows = await db.execute_fetchall(
+        """SELECT job_id, device_id, status, scene_type, photographer_notes,
+                  final_prompt, error, created_at, completed_at
+           FROM jobs ORDER BY created_at DESC LIMIT ?""",
+        (limit,),
+    )
+    return [
+        {
+            "job_id": r[0],
+            "device_id": r[1][:8] + "...",
+            "status": r[2],
+            "scene_type": r[3],
+            "photographer_notes": r[4],
+            "final_prompt": r[5],
+            "error": r[6],
+            "created_at": r[7],
+            "completed_at": r[8],
+        }
+        for r in rows
+    ]
 
 
 async def cleanup_old_jobs(db: aiosqlite.Connection):
